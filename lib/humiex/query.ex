@@ -1,11 +1,11 @@
-defmodule Humio.Query do
+defmodule Humiex.Query do
   @moduledoc """
-  Sync functions to query Humio Search results
+  Sync functions to query Humiex Search results
   """
-  alias Humio.{Client, Runner, State}
+  alias Humiex.{Client, Runner, State}
 
-  @spec query(Humio.Client.t(), String.t(), State.maybe_time(), State.maybe_time(), keyword) ::
-          {:ok, [any], Humio.State.t()}
+  @spec query(Humiex.Client.t(), String.t(), State.maybe_time(), State.maybe_time(), keyword) ::
+          {:ok, [any], Humiex.State.t()}
   def query(%Client{} = client, query_string, start_time, end_time \\ nil, opts \\ []) do
     opts =
       opts
@@ -20,11 +20,11 @@ defmodule Humio.Query do
       opts: opts
     }
     |> Runner.start()
-    |> Humio.Stream.to_query()
+    |> Humiex.Stream.to_query()
   end
 
   @spec query_values(
-          Humio.Client.t(),
+          Humiex.Client.t(),
           binary,
           nil | binary | number,
           nil | binary | number,

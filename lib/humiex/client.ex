@@ -1,6 +1,6 @@
-defmodule Humio.Client do
+defmodule Humiex.Client do
   @moduledoc """
-  Humio Client configuration
+  Humiex Client configuration
 
   Stores the url, repo and token needed to use the Search API
   """
@@ -15,7 +15,7 @@ defmodule Humio.Client do
           headers: [header()]
         }
 
-  @spec new(String.t(), String.t(), token()) :: Humio.Client.t()
+  @spec new(String.t(), String.t(), token()) :: Humiex.Client.t()
   def new(base_url, repo, token) do
     headers = [
       {"authorization", "Bearer #{token}"},

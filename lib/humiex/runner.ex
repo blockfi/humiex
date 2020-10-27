@@ -1,6 +1,6 @@
-defmodule Humio.Runner do
+defmodule Humiex.Runner do
   @moduledoc false
-  alias Humio.Runner.Streamer
+  alias Humiex.Runner.Streamer
 
   defdelegate start(state), to: Streamer
 end

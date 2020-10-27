@@ -1,12 +1,12 @@
-defmodule Humio.Runner.Streamer do
+defmodule Humiex.Runner.Streamer do
   @moduledoc false
   require Logger
-  alias Humio.State
-  alias Humio.Runner.HTTPClient
+  alias Humiex.State
+  alias Humiex.Runner.HTTPClient
 
   @default_recv_timeout 5_000
 
-  @spec start(Humio.State.t()) :: Enumerable.t()
+  @spec start(Humiex.State.t()) :: Enumerable.t()
   def start(%State{} = state) do
     start_fun = HTTPClient.post(state)
 

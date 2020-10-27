@@ -1,11 +1,11 @@
-defmodule Humio.State do
+defmodule Humiex.State do
   @moduledoc """
-  Stores a Humio Query/Stream search state
+  Stores a Humiex Query/Stream search state
 
-  Allows Humio.stream/1 and Humio.stream_values/1 to resume a Search from a previous one
+  Allows Humiex.stream/1 and Humiex.stream_values/1 to resume a Search from a previous one
   """
 
-  alias Humio.Client
+  alias Humiex.Client
   require Logger
   @enforce_keys [:client]
   defstruct client: nil,

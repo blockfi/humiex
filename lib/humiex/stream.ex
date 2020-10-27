@@ -1,10 +1,10 @@
-defmodule Humio.Stream do
+defmodule Humiex.Stream do
   @moduledoc """
-  Async functions to Stream Humio Search results
+  Async functions to Stream Humiex Search results
   """
-  alias Humio.{Client, Runner, State}
+  alias Humiex.{Client, Runner, State}
 
-  @spec stream(Humio.Client.t(), String.t(), State.maybe_time(), keyword) :: Enumerable.t()
+  @spec stream(Humiex.Client.t(), String.t(), State.maybe_time(), keyword) :: Enumerable.t()
   def stream(client, query_string, start_time \\ nil, opts \\ [])
 
   def stream(%Client{} = _client, _query_string, start_time, _opts) when is_number(start_time) do
@@ -43,7 +43,7 @@ defmodule Humio.Stream do
     |> Runner.start()
   end
 
-  @spec stream_values(Humio.Client.t(), String.t(), State.maybe_time(), keyword) :: Enumerable.t()
+  @spec stream_values(Humiex.Client.t(), String.t(), State.maybe_time(), keyword) :: Enumerable.t()
   def stream_values(client, query_string, start_time \\ nil, opts \\ [state_dest: self()])
 
   def stream_values(%Client{} = _client, _query_string, start_time, _opts)
@@ -66,7 +66,7 @@ defmodule Humio.Stream do
     end)
   end
 
-  @spec stream_values(Humio.State.t()) :: Enumerable.t()
+  @spec stream_values(Humiex.State.t()) :: Enumerable.t()
   def stream_values(%State{opts: opts} = state) do
     state_dest = Keyword.get(opts, :state_dest, self())
 
@@ -78,7 +78,7 @@ defmodule Humio.Stream do
     end)
   end
 
-  @spec to_query(Enumerable.t()) :: {:ok, [any], Humio.State.t()}
+  @spec to_query(Enumerable.t()) :: {:ok, [any], Humiex.State.t()}
   def to_query(stream) do
     stream
     |> Enum.reduce({:ok, [], nil}, fn %{value: value, state: state}, {:ok, events, _state} ->

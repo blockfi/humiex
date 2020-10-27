@@ -1,8 +1,8 @@
-defmodule Humio.Runner.HTTPClient do
+defmodule Humiex.Runner.HTTPClient do
   @moduledoc false
 
   require Logger
-  alias Humio.{Client, State}
+  alias Humiex.{Client, State}
 
   @default_live_config true
 

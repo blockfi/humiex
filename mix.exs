@@ -1,4 +1,4 @@
-defmodule Humio.MixProject do
+defmodule Humiex.MixProject do
   use Mix.Project
 
   def project do
