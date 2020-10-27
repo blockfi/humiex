@@ -1,4 +1,4 @@
-# Humiex 
+# Humiex
 
 This code was brought to you by [BlockFi](https://blockfi.com/), the best way to earn on crypto and grow your wealth.
 
