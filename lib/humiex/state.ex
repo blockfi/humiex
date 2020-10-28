@@ -6,6 +6,8 @@ defmodule Humiex.State do
   """
 
   alias Humiex.Client
+  alias Humiex.Runner.HTTPClient
+
   require Logger
   @enforce_keys [:client]
   defstruct client: nil,
@@ -17,7 +19,8 @@ defmodule Humiex.State do
             chunk: nil,
             latest_ids: [],
             last_timestamp: 0,
-            event_count: 0
+            event_count: 0,
+            http_client: HTTPClient
 
   @type relative_time() :: String.t()
   @type absolute_time() :: number()
@@ -29,7 +32,7 @@ defmodule Humiex.State do
           query_string: String.t(),
           start_time: maybe_time(),
           end_time: maybe_time(),
-          resp: HTTPoison.AsyncResponse.t() | nil,
+          resp: any,
           last_timestamp: number(),
           latest_ids: [event_id()],
           event_count: number(),

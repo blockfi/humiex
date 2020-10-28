@@ -2,51 +2,17 @@ defmodule Humiex.Runner.Streamer do
   @moduledoc false
   require Logger
   alias Humiex.State
-  alias Humiex.Runner.HTTPClient
-
-  @default_recv_timeout 5_000
 
   @spec start(Humiex.State.t()) :: Enumerable.t()
-  def start(%State{} = state) do
-    start_fun = HTTPClient.post(state)
+  def start(%State{http_client: http_client} = state) do
+    start_fun = http_client.start(state)
 
     Stream.resource(
       start_fun,
-      &next_fun/1,
-      &HTTPClient.end_fun/1
+      &http_client.next/1,
+      &http_client.stop/1
     )
-  end
-
-  def next_fun(
-         %State{
-           resp: %HTTPoison.AsyncResponse{id: id} = resp,
-           opts: opts
-         } = state
-       ) do
-    recv_timeout = Keyword.get(opts, :recv_timeout, @default_recv_timeout)
-
-    receive do
-      %HTTPoison.AsyncStatus{id: ^id, code: code} ->
-        Logger.debug("STATUS: #{code}")
-        HTTPoison.stream_next(resp)
-        {[], state}
-
-      %HTTPoison.AsyncHeaders{id: ^id, headers: headers} ->
-        Logger.debug("RESPONSE HEADERS: #{inspect(headers)}")
-        HTTPoison.stream_next(resp)
-        {[], state}
-
-      %HTTPoison.AsyncChunk{id: ^id, chunk: chunk} ->
-        HTTPoison.stream_next(resp)
-        # :erlang.garbage_collect()
-        new_state = %State{state | chunk: chunk}
-        {[new_state], new_state}
-
-      %HTTPoison.AsyncEnd{id: ^id} ->
-        {:halt, state}
-    after
-      recv_timeout -> raise "receive timeout"
-    end
+    |> lines()
   end
 
   defp update_from_events(events, state) do
