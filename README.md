@@ -1,7 +1,5 @@
 # Humiex
 
-This code was brought to you by [BlockFi](https://blockfi.com/), the best way to earn on crypto and grow your wealth.
-
 Humio searches using it's REST API
 Supports sync queries and streaming live queries
 
@@ -42,3 +40,6 @@ Turn it into a live query:
   last_10_events = event_stream
   |> Enum.take(10)
 ```
+
+---
+This code was brought to you by [BlockFi](https://blockfi.com/), the best way to earn on crypto and grow your wealth.
