@@ -1,10 +1,10 @@
 defmodule Humiex.Runner.Streamer do
   @moduledoc false
   require Logger
-  alias Humiex.State
+  alias Humiex.{State, Client}
 
   @spec start(Humiex.State.t()) :: Enumerable.t()
-  def start(%State{http_client: http_client} = state) do
+  def start(%State{client: %Client{http_client: http_client}} = state) do
     start_fun = http_client.start(state)
 
     Stream.resource(

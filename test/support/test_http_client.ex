@@ -18,10 +18,8 @@ defmodule HumiexTest.TestHTTPClient do
     ]
     {:ok, pid} = Agent.start(fn -> response_list end)
 
-    get_next(pid)
     %State{
-      client: Client.new("mock", "test", "my_token"),
-      http_client: __MODULE__,
+      client: Client.new("mock", "test", "my_token", http_client: __MODULE__),
       resp: pid
     }
   end
@@ -40,8 +38,9 @@ defmodule HumiexTest.TestHTTPClient do
   end
 
   @impl true
-  def start(%State{} = state) do
+  def start(%State{resp: resp} = state) do
     fn ->
+      get_next(resp)
       state
     end
   end

@@ -6,7 +6,6 @@ defmodule Humiex.State do
   """
 
   alias Humiex.Client
-  alias Humiex.Runner.HTTPClient
 
   require Logger
   @enforce_keys [:client]
@@ -19,8 +18,7 @@ defmodule Humiex.State do
             chunk: nil,
             latest_ids: [],
             last_timestamp: 0,
-            event_count: 0,
-            http_client: HTTPClient
+            event_count: 0
 
   @type relative_time() :: String.t()
   @type absolute_time() :: number()
