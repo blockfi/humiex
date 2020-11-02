@@ -31,7 +31,7 @@ defmodule Humiex.MixProject do
   defp package() do
     [
       name: "humiex",
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE* src),
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
       licenses: ["MIT"],
       maintainers: ["Eduardo Moraga"],
       links: %{"GitHub" => "https://github.com/blockfi/humiex"}
