@@ -3,7 +3,17 @@
 Humio searches using it's REST API
 Supports sync queries and streaming live queries
 
-## TODO: Installation
+## Installation
+
+Add to your dependencies
+
+```elixir
+deps = [
+  ...
+  {:humiex, "~> 0.1.0"},
+  ...
+]
+```
 
 ## Usage
 
