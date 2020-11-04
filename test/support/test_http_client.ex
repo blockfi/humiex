@@ -19,7 +19,7 @@ defmodule HumiexTest.TestHTTPClient do
     {:ok, pid} = Agent.start(fn -> response_list end)
 
     %State{
-      client: Client.new("mock", "test", "my_token", http_client: __MODULE__),
+      client: Humiex.new_client("mock", "test", "my_token", http_client: __MODULE__),
       resp: pid
     }
   end
