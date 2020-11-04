@@ -8,7 +8,26 @@ defmodule Humiex do
   @type time() :: Humiex.State.time()
   @type maybe_time() :: Humiex.State.maybe_time()
 
+  @doc """
+  Creates a new Humiex.Client
 
+  Takes a Hostname, Repository Name, Token and options
+
+  ## example
+      iex> client = Humiex.new_client("https://my-humio-host.com", "my_repo", "my_token")
+      %Humiex.Client{
+      headers: [
+        {"authorization", "Bearer my_token"},
+        {"Content-Type", "application/json"},
+        {"Accept", "application/x-ndjson"}
+      ],
+      http_client: Humiex.Runner.HTTPClient,
+      repo: "my_repo",
+      token: "my_token",
+      url: "https://my-humio-host.com/api/v1/repositories/my_repo/query"
+      }
+  """
+  @spec new_client(binary, any, any, keyword) :: Humiex.Client.t()
   defdelegate new_client(host, repo, token, opts \\ []), to: Humiex.Client, as: :new
 
   @doc """
