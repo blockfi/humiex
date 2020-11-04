@@ -11,7 +11,7 @@ defmodule Humiex do
   @doc """
   Makes a search request to the Humio API and returns the events and state synchronously
 
-  Takes a Humiex.Client configuration, Query String, Start Time, End Time and optionally options
+  Takes a Humiex.Client configuration, Query String, Start Time, End Time and options
 
   ## examples
       iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
@@ -31,7 +31,7 @@ defmodule Humiex do
   @doc """
   Makes a search request to the Humio API and synchronously returns only the events
 
-  Takes a Humiex.Client configuration, Query String, Start Time, End Time and optionally options
+  Takes a Humiex.Client configuration, Query String, Start Time, End Time and options
 
   ## examples
       iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
@@ -47,15 +47,113 @@ defmodule Humiex do
   defdelegate query_values(client, query_string, start_time, end_time \\ nil, opts \\ []),
     to: Humiex.Query
 
+  @doc """
+  Makes a live search request to the Humio API and asynchronously returns the event and state
+
+  Takes a Humiex.Client configuration, Query String, Start Time and options
+
+  Each streamed result have the shape: `%{value: event, state: state}`
+
+  ## examples
+      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> query_string = "#env=dev #type=log foo"
+
+      iex> relative_start = "1s"
+      iex> relative_start_stream = Humiex.stream(client, query_string, relative_start)
+      iex> stream |> Enum.take(3)
+
+      iex> absolute_start = 1604447249
+      iex> absolute_start_stream = Humiex.stream(client, query_string, absolute_start)
+      iex> absolute_start_stream |> Enum.take(3)
+  """
   @spec stream(Humiex.Client.t(), String.t(), relative_time(), keyword) :: Enumerable.t()
   defdelegate stream(client, query_string, start_time, opts \\ []), to: Humiex.Stream
 
+  @doc """
+  Makes a live search request to the Humio API and asynchronously returns the events
+
+  Takes a Humiex.Client configuration, Query String, Start Time and options
+
+  Each streamed result is one humio event.
+
+  The State is sent as a message `{:updated_humio_query_state, state}`
+  for each event streamed. The message is sent to the current process by default, a custom
+  recipient pid can be passed using the opt `:state_dest`
+  ## examples
+      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> query_string = "#env=dev #type=log foo"
+
+      iex> start = "1s"
+      iex> stream = Humiex.stream_values(client, query_string, start)
+      iex> [event] = stream |> Enum.take(1)
+      [
+        %{...}
+      ]
+      iex> flush
+      ...
+      {:updated_humio_query_state, %Humiex.State{...}}
+      :ok
+
+      iex> {:ok, pid} = Task.start(fn ->
+      ...> receive do
+      ...>   {:updated_humio_query_state, state} -> IO.inspect(state)
+      ...>   _ -> :ok
+      ...> end end)
+      iex> stream = Humiex.stream(client, query_string, start, state_dest: pid)
+      iex> stream |> Enum.take(1)
+      %Humiex.State{...}
+      [
+        %{...}
+      ]
+  """
   @spec stream_values(Humiex.Client.t(), String.t(), maybe_time(), keyword) :: Enumerable.t()
   defdelegate stream_values(client, query_string, start_time, opts \\ []), to: Humiex.Stream
 
+  @doc """
+  Makes a live search request to the Humio API and asynchronously returns the event and state
+
+  Takes a previous Humiex.State and continues from where it left off based on the `last_timestamp` and `latest_ids`
+
+  Each streamed result have the shape: `%{value: event, state: state}`
+
+  ## examples
+      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> query_string = "#env=dev #type=log foo"
+
+      iex> relative_start = "1s"
+      iex> [%{state: state}] = Humiex.stream(client, query_string, relative_start) |> Enum.take(1)
+      iex> next_events = Humiex.stream(state) |> Enum.take(100)
+  """
   @spec stream(Humiex.State.t()) :: Enumerable.t()
   defdelegate stream(state), to: Humiex.Stream
 
+  @doc """
+  Makes a live search request to the Humio API and asynchronously returns the events
+
+  Takes a previous Humiex.State and continues from where it left off based on the `last_timestamp` and `latest_ids`
+
+  Each streamed result is one humio event.
+
+  The State is sent as a message `{:updated_humio_query_state, state}`
+  for each event streamed.
+  The message is sent to the process specified in the State option `:state_dest` (current process by default)
+
+  ## examples
+      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> query_string = "#env=dev #type=log foo"
+
+      iex> relative_start = "1s"
+      iex> [%{value: _value, state: state}] = Humiex.stream(client, query_string, relative_start) |> Enum.take(1)
+      iex> next_events = Humiex.stream_values(state) |> Enum.take(100)
+      [
+        %{...},
+        ...
+      ]
+      iex> flush
+      ...
+      {:updated_humio_query_state, %Humiex.State{...}}
+      :ok
+  """
   @spec stream_values(Humiex.State.t()) :: Enumerable.t()
   defdelegate stream_values(state), to: Humiex.Stream
 end
