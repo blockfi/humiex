@@ -8,13 +8,16 @@ defmodule Humiex do
   @type time() :: Humiex.State.time()
   @type maybe_time() :: Humiex.State.maybe_time()
 
+
+  defdelegate new_client(host, repo, token, opts \\ []), to: Humiex.Client, as: :new
+
   @doc """
   Makes a search request to the Humio API and returns the events and state synchronously
 
   Takes a Humiex.Client configuration, Query String, Start Time, End Time and options
 
   ## examples
-      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> client = Humiex.new_client("https://my-humio-host.com", "my_repo", "my_token")
       iex> query_string = "#env=dev #type=log foo"
 
       iex> relative_start = "1s"
@@ -34,7 +37,7 @@ defmodule Humiex do
   Takes a Humiex.Client configuration, Query String, Start Time, End Time and options
 
   ## examples
-      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> client = Humiex.new_client("https://my-humio-host.com", "my_repo", "my_token")
       iex> query_string = "#env=dev #type=log foo"
 
       iex> relative_start = "1s"
@@ -55,7 +58,7 @@ defmodule Humiex do
   Each streamed result have the shape: `%{value: event, state: state}`
 
   ## examples
-      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> client = Humiex.new_client("https://my-humio-host.com", "my_repo", "my_token")
       iex> query_string = "#env=dev #type=log foo"
 
       iex> relative_start = "1s"
@@ -80,7 +83,7 @@ defmodule Humiex do
   for each event streamed. The message is sent to the current process by default, a custom
   recipient pid can be passed using the opt `:state_dest`
   ## examples
-      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> client = Humiex.new_client("https://my-humio-host.com", "my_repo", "my_token")
       iex> query_string = "#env=dev #type=log foo"
 
       iex> start = "1s"
@@ -117,7 +120,7 @@ defmodule Humiex do
   Each streamed result have the shape: `%{value: event, state: state}`
 
   ## examples
-      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> client = Humiex.new_client("https://my-humio-host.com", "my_repo", "my_token")
       iex> query_string = "#env=dev #type=log foo"
 
       iex> relative_start = "1s"
@@ -139,7 +142,7 @@ defmodule Humiex do
   The message is sent to the process specified in the State option `:state_dest` (current process by default)
 
   ## examples
-      iex> client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+      iex> client = Humiex.new_client("https://my-humio-host.com", "my_repo", "my_token")
       iex> query_string = "#env=dev #type=log foo"
 
       iex> relative_start = "1s"

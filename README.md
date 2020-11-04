@@ -20,7 +20,7 @@ deps = [
 Create a Humio Client
 
 ```elixir
-client = Humiex.Client.new("my-humio-host.com", "my_repo", "my_token")
+client = Humiex.new_client("https://my-humio-host.com", "my_repo", "my_token")
 ```
 
 ### Query
