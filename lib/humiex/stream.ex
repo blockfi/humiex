@@ -29,10 +29,8 @@ defmodule Humiex.Stream do
     |> Runner.start()
   end
 
-  def stream(%State{latest_ids: [], last_timestamp: nil} = state) do
-    state |> inspect() |> Logger.debug()
-
-    %State{state | start_time: nil, end_time: "now"}
+  def stream(%State{latest_ids: [], last_timestamp: 0} = state) do
+    %State{state | start_time: nil, end_time: "now", chunk: nil}
     |> Runner.start()
   end
 

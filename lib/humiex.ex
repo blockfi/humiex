@@ -46,7 +46,7 @@ defmodule Humiex do
       iex> {:ok, absolute_events, absolute_state} = Humiex.query(client, query_string, absolute_start)
   """
   @spec query(Humiex.Client.t(), String.t(), maybe_time(), maybe_time(), keyword) ::
-          {:ok, [any], Humiex.State.t()} | {:error, any}
+          {:ok, [any], Humiex.State.t()} | {:error, any, Humiex.State.t()}
   defdelegate query(client, query_string, start_time, end_time \\ nil, opts \\ []),
     to: Humiex.Query
 
@@ -65,7 +65,14 @@ defmodule Humiex do
       iex> absolute_start = 1604447249
       iex> absolute_events = Humiex.query_values(client, query_string, absolute_start)
   """
-  @spec query_values(Humiex.Client.t(), String.t(), maybe_time(), maybe_time(), keyword) :: [any]
+  @spec query_values(
+          Humiex.Client.t(),
+          binary,
+          nil | binary | number,
+          nil | binary | number,
+          keyword
+        ) ::
+          [any]
   defdelegate query_values(client, query_string, start_time, end_time \\ nil, opts \\ []),
     to: Humiex.Query
 
@@ -89,7 +96,7 @@ defmodule Humiex do
       iex> absolute_start_stream |> Enum.take(3)
   """
   @spec stream(Humiex.Client.t(), String.t(), relative_time(), keyword) :: Enumerable.t()
-  defdelegate stream(client, query_string, start_time, opts \\ []), to: Humiex.Stream
+  defdelegate stream(client, query_string, start_time \\ nil, opts \\ []), to: Humiex.Stream
 
   @doc """
   Makes a live search request to the Humio API and asynchronously returns the events
