@@ -6,7 +6,7 @@ defmodule HumiexTest.TestHTTPClient do
   """
   @behaviour Humiex.HTTPAsyncBehaviour
   require Logger
-  alias Humiex.{State, Client}
+  alias Humiex.State
   alias HumiexTest.TestResponse
 
   def setup(%TestResponse{} = response) do
@@ -48,11 +48,14 @@ defmodule HumiexTest.TestHTTPClient do
   @impl true
   def next(%State{resp: resp} = state) do
     receive do
-      {:status, code} ->
+      {:status, code} when code < 299 ->
         Logger.debug("STATUS: #{code}")
         get_next(resp)
-        {[], state}
-
+        {[], %State{state | status: :ok, response_code: code}}
+      {:status, code} ->
+          Logger.debug("STATUS: #{code}")
+          get_next(resp)
+          {[], %State{state | status: :error, response_code: code}}
       {:headers, headers} ->
         Logger.debug("RESPONSE HEADERS: #{inspect(headers)}")
         get_next(resp)

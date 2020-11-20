@@ -18,7 +18,9 @@ defmodule Humiex.State do
             chunk: nil,
             latest_ids: [],
             last_timestamp: 0,
-            event_count: 0
+            event_count: 0,
+            response_code: nil,
+            status: nil
 
   @type relative_time() :: String.t()
   @type absolute_time() :: number()
@@ -54,6 +56,8 @@ defmodule Humiex.State do
           latest_ids: [event_id()],
           event_count: number(),
           chunk: binary() | nil,
-          opts: keyword
+          opts: keyword,
+          response_code: number() | nil,
+          status: :ok | :error | nil,
         }
 end

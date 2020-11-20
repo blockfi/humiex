@@ -66,13 +66,12 @@ defmodule Humiex.Runner.Streamer do
     )
   end
 
-
   def lines(enum), do: lines(enum, :string_split)
 
   defp lines(enum, :string_split) do
     enum
     |> Stream.transform("", fn
-      %State{chunk: chunk}, {prev_line, prev_state} ->
+      %State{chunk: chunk, status: :ok}, {prev_line, prev_state} ->
         [last_line | lines] =
           (prev_line <> chunk)
           |> String.split("\n")
@@ -83,7 +82,7 @@ defmodule Humiex.Runner.Streamer do
 
         {enriched_events, {last_line, new_state}}
 
-      %State{chunk: chunk} = initial_state, acc ->
+      %State{chunk: chunk, status: :ok} = initial_state, acc ->
         [last_line | lines] =
           (acc <> chunk)
           |> String.split("\n")
@@ -92,6 +91,9 @@ defmodule Humiex.Runner.Streamer do
         events = lines |> Enum.map(&Jason.decode!/1) |> Enum.reverse()
         {enriched_events, new_state} = update_from_events(events, initial_state)
         {enriched_events, {last_line, new_state}}
+
+      %State{status: :error, response_code: code, chunk: message} = state, _acc ->
+      {[{:error, %{code: code, message: message}, state}], state}
     end)
   end
 end

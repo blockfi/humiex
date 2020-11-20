@@ -45,8 +45,11 @@ defmodule Humiex.Query do
       opts: opts
     }
     |> Runner.start()
-    |> Enum.map(fn %{value: event} ->
-      event
+    |> Enum.map(fn
+      {:error, _info, _state} = error ->
+        error
+      %{value: event} ->
+        event
     end)
   end
 end

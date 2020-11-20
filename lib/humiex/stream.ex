@@ -3,6 +3,7 @@ defmodule Humiex.Stream do
   Async functions to Stream Humiex Search results
   """
   alias Humiex.{Client, Runner, State}
+  require Logger
 
   @spec stream(Humiex.Client.t(), String.t(), State.maybe_time(), keyword) :: Enumerable.t()
   def stream(client, query_string, start_time \\ nil, opts \\ [])
@@ -28,6 +29,13 @@ defmodule Humiex.Stream do
     |> Runner.start()
   end
 
+  def stream(
+        %State{latest_ids: [], last_timestamp: nil} = state
+      ) do
+    state |> inspect() |> Logger.debug()
+    %State{state | start_time: nil, end_time: "now"}
+    |> Runner.start()
+  end
   def stream(
         %State{query_string: query_string, latest_ids: ids, last_timestamp: timestamp} = state
       ) do
@@ -60,7 +68,10 @@ defmodule Humiex.Stream do
 
     client
     |> stream(query_string, start_time, opts)
-    |> Stream.map(fn %{value: value, state: state} ->
+    |> Stream.map(fn
+      {:error, _info, _state} = error ->
+        error
+      %{value: value, state: state} ->
       send(state_dest, {:updated_humio_query_state, state})
       value
     end)
@@ -72,16 +83,22 @@ defmodule Humiex.Stream do
 
     state
     |> stream()
-    |> Stream.map(fn %{value: value, state: state} ->
-      send(state_dest, {:updated_humio_query_state, state})
-      value
+    |> Stream.map(fn
+      {:error, _info, _state} = error ->
+        error
+      %{value: value, state: state} ->
+        send(state_dest, {:updated_humio_query_state, state})
+        value
     end)
   end
 
   @spec to_query(Enumerable.t()) :: {:ok, [any], Humiex.State.t()}
   def to_query(stream) do
     stream
-    |> Enum.reduce({:ok, [], nil}, fn %{value: value, state: state}, {:ok, events, _state} ->
+    |> Enum.reduce({:ok, [], nil}, fn
+      {:error, _info, _state} = error, _ ->
+        error
+      %{value: value, state: state}, {:ok, events, _state} ->
       {:ok, [value | events], state}
     end)
   end
