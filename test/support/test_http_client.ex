@@ -6,35 +6,56 @@ defmodule HumiexTest.TestHTTPClient do
   """
   @behaviour Humiex.HTTPAsyncBehaviour
   require Logger
-  alias Humiex.State
+  alias Humiex.{Client, State}
   alias HumiexTest.TestResponse
 
-  def setup(%TestResponse{} = response) do
+  defmodule Error do
+    defexception [:message]
+  end
+
+  def setup(%TestResponse{} = response, opts \\ []) do
     response_list = [
       status: response.status,
       headers: response.headers,
       chunks: response.chunks,
       response_end: response.response_end
     ]
+
     {:ok, pid} = Agent.start(fn -> response_list end)
 
+    url = Keyword.get(opts, :url, "mock")
+
     %State{
-      client: Humiex.new_client("mock", "test", "my_token", http_client: __MODULE__),
+      client: Humiex.new_client(url, "test", "my_token", http_client: __MODULE__),
       resp: pid
     }
   end
 
   def get_next(pid) do
-    msg = Agent.get_and_update(pid, fn
-      [{:status, _code} = msg | rest] ->
-        {msg, rest}
-      [{:headers, _headers} = msg | rest] -> {msg, rest}
-      [{:chunks, [chunk | []]} | rest ] -> {{:chunk, chunk}, rest}
-      [{:chunks, [chunk | rest_chunks]} | rest ] -> {{:chunk, chunk}, [{:chunks, rest_chunks} | rest]}
-      [{:response_end, :response_end}] -> {:response_end, []}
-    end)
+    msg =
+      Agent.get_and_update(pid, fn
+        [{:status, _code} = msg | rest] ->
+          {msg, rest}
+
+        [{:headers, _headers} = msg | rest] ->
+          {msg, rest}
+
+        [{:chunks, [chunk | []]} | rest] ->
+          {{:chunk, chunk}, rest}
+
+        [{:chunks, [chunk | rest_chunks]} | rest] ->
+          {{:chunk, chunk}, [{:chunks, rest_chunks} | rest]}
+
+        [{:response_end, :response_end}] ->
+          {:response_end, []}
+      end)
 
     send(self(), msg)
+  end
+
+  @impl true
+  def start(%State{client: %Client{url: "bad_domain/api/v1/repositories/test/query"}}) do
+    raise(HumiexTest.TestHTTPClient.Error, "nxdomain")
   end
 
   @impl true
@@ -52,10 +73,12 @@ defmodule HumiexTest.TestHTTPClient do
         Logger.debug("STATUS: #{code}")
         get_next(resp)
         {[], %State{state | status: :ok, response_code: code}}
+
       {:status, code} ->
-          Logger.debug("STATUS: #{code}")
-          get_next(resp)
-          {[], %State{state | status: :error, response_code: code}}
+        Logger.debug("STATUS: #{code}")
+        get_next(resp)
+        {[], %State{state | status: :error, response_code: code}}
+
       {:headers, headers} ->
         Logger.debug("RESPONSE HEADERS: #{inspect(headers)}")
         get_next(resp)
