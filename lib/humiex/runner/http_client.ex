@@ -66,10 +66,11 @@ defmodule Humiex.Runner.HTTPClient do
         Logger.debug("STATUS: #{code}")
         HTTPoison.stream_next(resp)
         {[], %State{state | status: :ok, response_code: code}}
+
       %HTTPoison.AsyncStatus{id: ^id, code: code} ->
-          Logger.debug("STATUS: #{code}")
-          HTTPoison.stream_next(resp)
-          {[], %State{state | status: :error, response_code: code}}
+        Logger.debug("STATUS: #{code}")
+        HTTPoison.stream_next(resp)
+        {[], %State{state | status: :error, response_code: code}}
 
       %HTTPoison.AsyncHeaders{id: ^id, headers: headers} ->
         Logger.debug("RESPONSE HEADERS: #{inspect(headers)}")

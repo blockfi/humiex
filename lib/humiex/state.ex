@@ -58,6 +58,6 @@ defmodule Humiex.State do
           chunk: binary() | nil,
           opts: keyword,
           response_code: number() | nil,
-          status: :ok | :error | nil,
+          status: :ok | :error | nil
         }
 end

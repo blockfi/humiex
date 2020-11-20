@@ -29,13 +29,13 @@ defmodule Humiex.Stream do
     |> Runner.start()
   end
 
-  def stream(
-        %State{latest_ids: [], last_timestamp: nil} = state
-      ) do
+  def stream(%State{latest_ids: [], last_timestamp: nil} = state) do
     state |> inspect() |> Logger.debug()
+
     %State{state | start_time: nil, end_time: "now"}
     |> Runner.start()
   end
+
   def stream(
         %State{query_string: query_string, latest_ids: ids, last_timestamp: timestamp} = state
       ) do
@@ -51,7 +51,8 @@ defmodule Humiex.Stream do
     |> Runner.start()
   end
 
-  @spec stream_values(Humiex.Client.t(), String.t(), State.maybe_time(), keyword) :: Enumerable.t()
+  @spec stream_values(Humiex.Client.t(), String.t(), State.maybe_time(), keyword) ::
+          Enumerable.t()
   def stream_values(client, query_string, start_time \\ nil, opts \\ [state_dest: self()])
 
   def stream_values(%Client{} = _client, _query_string, start_time, _opts)
@@ -71,9 +72,10 @@ defmodule Humiex.Stream do
     |> Stream.map(fn
       {:error, _info, _state} = error ->
         error
+
       %{value: value, state: state} ->
-      send(state_dest, {:updated_humio_query_state, state})
-      value
+        send(state_dest, {:updated_humio_query_state, state})
+        value
     end)
   end
 
@@ -86,6 +88,7 @@ defmodule Humiex.Stream do
     |> Stream.map(fn
       {:error, _info, _state} = error ->
         error
+
       %{value: value, state: state} ->
         send(state_dest, {:updated_humio_query_state, state})
         value
@@ -98,8 +101,9 @@ defmodule Humiex.Stream do
     |> Enum.reduce({:ok, [], nil}, fn
       {:error, _info, _state} = error, _ ->
         error
+
       %{value: value, state: state}, {:ok, events, _state} ->
-      {:ok, [value | events], state}
+        {:ok, [value | events], state}
     end)
   end
 end

@@ -48,6 +48,7 @@ defmodule Humiex.Query do
     |> Enum.map(fn
       {:error, _info, _state} = error ->
         error
+
       %{value: event} ->
         event
     end)

@@ -15,7 +15,7 @@ defmodule Humiex.Client do
           repo: String.t(),
           token: token(),
           headers: [header()],
-          http_client: any,
+          http_client: any
         }
 
   @spec new(String.t(), String.t(), token()) :: Humiex.Client.t()

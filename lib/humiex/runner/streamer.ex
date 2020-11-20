@@ -93,7 +93,7 @@ defmodule Humiex.Runner.Streamer do
         {enriched_events, {last_line, new_state}}
 
       %State{status: :error, response_code: code, chunk: message} = state, _acc ->
-      {[{:error, %{code: code, message: message}, state}], state}
+        {[{:error, %{code: code, message: message}, state}], state}
     end)
   end
 end
