@@ -2,6 +2,7 @@ defmodule HumiexTest do
   use ExUnit.Case
   alias HumiexTest.{TestHTTPClient, TestResponse}
   alias Humiex.State
+  Logger.configure(level: :warning)
 
   test "can take some events from the stream" do
     test_state =
@@ -34,6 +35,25 @@ defmodule HumiexTest do
     assert length(events) == 2
     assert last_state.last_timestamp == 1_603_895_394_170
     assert last_state.latest_ids |> MapSet.new() |> MapSet.equal?(expected_ids)
+  end
+
+  test "handles bad domain" do
+    test_response = %TestResponse{
+      status: 200,
+      headers: [
+        {"Content-Type", "application/x-ndjson"}
+      ],
+      chunks: [
+        ""
+      ]
+    }
+
+    assert_raise(TestHTTPClient.Error, fn ->
+      test_response
+      |> TestHTTPClient.setup(url: "bad_domain")
+      |> Humiex.stream()
+      |> Enum.take(10)
+    end)
   end
 
   test "handles invalid token" do
@@ -73,7 +93,9 @@ defmodule HumiexTest do
   end
 
   test "handles invalid query" do
-    error_msg = "Could not parse expression:\n```\nExpected an expression.\n 1: #env=dev #type=metricservice=mystiquemeasurement=vm.memory\n                                ^\n```"
+    error_msg =
+      "Could not parse expression:\n```\nExpected an expression.\n 1: #env=dev #type=metricservice=mystiquemeasurement=vm.memory\n                                ^\n```"
+
     test_response = %TestResponse{
       status: 400,
       headers: [
@@ -104,11 +126,13 @@ defmodule HumiexTest do
 
     assert length(events) == 1
 
-    assert {:error, %{code: 400, message:  ^error_msg}, %State{}} = event
+    assert {:error, %{code: 400, message: ^error_msg}, %State{}} = event
   end
 
   test "handles redirection error" do
-    error_msg = "<html>\r\n<head><title>301 Moved Permanently</title></head>\r\n<body>\r\n<center><h1>301 Moved Permanently</h1></center>\r\n</body>\r\n</html>\r\n"
+    error_msg =
+      "<html>\r\n<head><title>301 Moved Permanently</title></head>\r\n<body>\r\n<center><h1>301 Moved Permanently</h1></center>\r\n</body>\r\n</html>\r\n"
+
     test_response = %TestResponse{
       status: 301,
       headers: [
@@ -139,7 +163,7 @@ defmodule HumiexTest do
 
     assert length(events) == 1
 
-    assert {:error, %{code: 301, message:  ^error_msg}, %State{}} = event
+    assert {:error, %{code: 301, message: ^error_msg}, %State{}} = event
   end
 
   test "can reconstruct line splitted in two chunks" do
