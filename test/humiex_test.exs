@@ -1,7 +1,7 @@
 defmodule HumiexTest do
   use ExUnit.Case
-  alias HumiexTest.{TestHTTPClient, TestResponse}
   alias Humiex.State
+  alias HumiexTest.{TestHTTPClient, TestResponse}
   Logger.configure(level: :warning)
 
   test "can take some events from the stream" do
