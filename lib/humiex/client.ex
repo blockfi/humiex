@@ -6,7 +6,7 @@ defmodule Humiex.Client do
   """
   alias Humiex.Runner.HTTPClient
 
-  defstruct [:url, :repo, :token, :headers, :http_client]
+  defstruct [:url, :repo, :token, :headers, :http_client, :opts]
 
   @type header() :: {String.t(), String.t()}
   @type token() :: String.t()
@@ -18,7 +18,7 @@ defmodule Humiex.Client do
           http_client: any
         }
 
-  @spec new(String.t(), String.t(), token()) :: Humiex.Client.t()
+  @spec new(String.t(), String.t(), token(), keyword()) :: Humiex.Client.t()
   def new(base_url, repo, token, opts \\ []) do
     headers = [
       {"authorization", "Bearer #{token}"},
@@ -30,6 +30,14 @@ defmodule Humiex.Client do
 
     path = "/api/v1/repositories/#{repo}/query"
     url = base_url <> path
-    %__MODULE__{url: url, repo: repo, token: token, headers: headers, http_client: http_client}
+
+    %__MODULE__{
+      url: url,
+      repo: repo,
+      token: token,
+      headers: headers,
+      http_client: http_client,
+      opts: opts
+    }
   end
 end

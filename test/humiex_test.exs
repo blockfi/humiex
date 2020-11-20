@@ -4,7 +4,12 @@ defmodule HumiexTest do
   alias HumiexTest.{TestHTTPClient, TestResponse}
   Logger.configure(level: :warning)
 
-  test "can take some events from the stream" do
+  test "Can generate a Humiex Client" do
+    client = Humiex.new_client("mock", "test", "my_token")
+    assert %Humiex.Client{url: "mock/api/v1/repositories/test/query"} = client
+  end
+
+  test "can take some events from the stream built from state" do
     test_state =
       %TestResponse{
         status: 200,
@@ -35,6 +40,128 @@ defmodule HumiexTest do
     assert length(events) == 2
     assert last_state.last_timestamp == 1_603_895_394_170
     assert last_state.latest_ids |> MapSet.new() |> MapSet.equal?(expected_ids)
+  end
+
+  test "can take some events from the stream built from client" do
+    %State{client: client} =
+      %TestResponse{
+        status: 200,
+        headers: [
+          {"Content-Type", "application/x-ndjson"}
+        ],
+        chunks: [
+          "{\"#repo\":\"test\",\"@id\":\"zGj7joWFnjgTl1quAiVqOBu5_1399_1481_1603895394\",\"@rawstring\":\"{\\\"message\\\":\\\"foo\\\"}\",\"@timestamp\":1603895394170,\"@timezone\":\"UTC\",\"message\":\"foo\"}\n{\"#repo\":\"test\",\"@id\":\"zGj7joWFnjgTl1quAiVqOBu5_1400_1453_1632895394\",\"@rawstring\":\"{\\\"message\\\":\\\"bar\\\"}\",\"@timestamp\":1603895394170,\"@timezone\":\"UTC\",\"message\":\"bar\"}\n{\"#repo\":\"test\",\"@id\":\"zGj7joW",
+          "FnjgTl1quAiVqOBu5_1401_1481_1603895934\",\"@rawstring\":\"{\\\"message\\\":\\\"baz\\\"}\",\"@timestamp\":1603895394171,\"@timezone\":\"UTC\",\"message\":\"baz\"}\n"
+        ]
+      }
+      |> TestHTTPClient.setup()
+
+    events =
+      client
+      |> Humiex.stream("some query", "1s")
+      |> Enum.take(2)
+
+    %{value: _last_value, state: last_state} = events |> List.last()
+
+    expected_ids =
+      [
+        "zGj7joWFnjgTl1quAiVqOBu5_1400_1453_1632895394",
+        "zGj7joWFnjgTl1quAiVqOBu5_1399_1481_1603895394"
+      ]
+      |> MapSet.new()
+
+    assert length(events) == 2
+    assert last_state.last_timestamp == 1_603_895_394_170
+    assert last_state.latest_ids |> MapSet.new() |> MapSet.equal?(expected_ids)
+  end
+
+  test "can take some event values from the stream built from client" do
+    %State{client: client} =
+      %TestResponse{
+        status: 200,
+        headers: [
+          {"Content-Type", "application/x-ndjson"}
+        ],
+        chunks: [
+          "{\"#repo\":\"test\",\"@id\":\"zGj7joWFnjgTl1quAiVqOBu5_1399_1481_1603895394\",\"@rawstring\":\"{\\\"message\\\":\\\"foo\\\"}\",\"@timestamp\":1603895394170,\"@timezone\":\"UTC\",\"message\":\"foo\"}\n{\"#repo\":\"test\",\"@id\":\"zGj7joWFnjgTl1quAiVqOBu5_1400_1453_1632895394\",\"@rawstring\":\"{\\\"message\\\":\\\"bar\\\"}\",\"@timestamp\":1603895394170,\"@timezone\":\"UTC\",\"message\":\"bar\"}\n{\"#repo\":\"test\",\"@id\":\"zGj7joW",
+          "FnjgTl1quAiVqOBu5_1401_1481_1603895934\",\"@rawstring\":\"{\\\"message\\\":\\\"baz\\\"}\",\"@timestamp\":1603895394171,\"@timezone\":\"UTC\",\"message\":\"baz\"}\n"
+        ]
+      }
+      |> TestHTTPClient.setup()
+
+    events =
+      client
+      |> Humiex.stream_values("some query", "1s")
+      |> Enum.take(2)
+
+    assert_receive {:updated_humio_query_state, %State{}}
+    assert length(events) == 2
+  end
+
+  test "can query all events" do
+    %State{client: client} =
+      %TestResponse{
+        status: 200,
+        headers: [
+          {"Content-Type", "application/x-ndjson"}
+        ],
+        chunks: [
+          "{\"#repo\":\"test\",\"@id\":\"zGj7joWFnjgTl1quAiVqOBu5_1399_1481_1603895394\",\"@rawstring\":\"{\\\"message\\\":\\\"foo\\\"}\",\"@timestamp\":1603895394170,\"@timezone\":\"UTC\",\"message\":\"foo\"}\n{\"#repo\":\"test\",\"@id\":\"zGj7joWFnjgTl1quAiVqOBu5_1400_1453_1632895394\",\"@rawstring\":\"{\\\"message\\\":\\\"bar\\\"}\",\"@timestamp\":1603895394170,\"@timezone\":\"UTC\",\"message\":\"bar\"}\n{\"#repo\":\"test\",\"@id\":\"zGj7joW",
+          "FnjgTl1quAiVqOBu5_1401_1481_1603895934\",\"@rawstring\":\"{\\\"message\\\":\\\"baz\\\"}\",\"@timestamp\":1603895394171,\"@timezone\":\"UTC\",\"message\":\"baz\"}\n"
+        ]
+      }
+      |> TestHTTPClient.setup()
+
+    expected_ids =
+      [
+        "zGj7joWFnjgTl1quAiVqOBu5_1401_1481_1603895934"
+      ]
+      |> MapSet.new()
+
+    res = Humiex.query(client, "some query", "1s")
+
+    assert {:ok, events, state} = res
+
+    assert length(events) == 3
+
+    assert %{
+             "#repo" => "test",
+             "@id" => "zGj7joWFnjgTl1quAiVqOBu5_1399_1481_1603895394",
+             "@rawstring" => "{\"message\":\"foo\"}",
+             "@timestamp" => 1_603_895_394_170,
+             "@timezone" => "UTC",
+             "message" => "foo"
+           } = events |> List.last()
+
+    assert state.latest_ids |> MapSet.new() |> MapSet.equal?(expected_ids)
+  end
+
+  test "can query all event values" do
+    %State{client: client} =
+      %TestResponse{
+        status: 200,
+        headers: [
+          {"Content-Type", "application/x-ndjson"}
+        ],
+        chunks: [
+          "{\"#repo\":\"test\",\"@id\":\"zGj7joWFnjgTl1quAiVqOBu5_1399_1481_1603895394\",\"@rawstring\":\"{\\\"message\\\":\\\"foo\\\"}\",\"@timestamp\":1603895394170,\"@timezone\":\"UTC\",\"message\":\"foo\"}\n{\"#repo\":\"test\",\"@id\":\"zGj7joWFnjgTl1quAiVqOBu5_1400_1453_1632895394\",\"@rawstring\":\"{\\\"message\\\":\\\"bar\\\"}\",\"@timestamp\":1603895394170,\"@timezone\":\"UTC\",\"message\":\"bar\"}\n{\"#repo\":\"test\",\"@id\":\"zGj7joW",
+          "FnjgTl1quAiVqOBu5_1401_1481_1603895934\",\"@rawstring\":\"{\\\"message\\\":\\\"baz\\\"}\",\"@timestamp\":1603895394171,\"@timezone\":\"UTC\",\"message\":\"baz\"}\n"
+        ]
+      }
+      |> TestHTTPClient.setup()
+
+    events = Humiex.query_values(client, "some query", "1s")
+
+    assert length(events) == 3
+
+    assert %{
+             "#repo" => "test",
+             "@id" => "zGj7joWFnjgTl1quAiVqOBu5_1401_1481_1603895934",
+             "@rawstring" => "{\"message\":\"baz\"}",
+             "@timestamp" => 1_603_895_394_171,
+             "@timezone" => "UTC",
+             "message" => "baz"
+           } = events |> Enum.sort_by(fn event -> event["@timestamp"] end, :asc) |> List.last()
   end
 
   test "handles bad domain" do

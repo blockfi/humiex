@@ -26,7 +26,7 @@ defmodule HumiexTest.TestHTTPClient do
     url = Keyword.get(opts, :url, "mock")
 
     %State{
-      client: Humiex.new_client(url, "test", "my_token", http_client: __MODULE__),
+      client: Humiex.new_client(url, "test", "my_token", http_client: __MODULE__, resp: pid),
       resp: pid
     }
   end
@@ -59,6 +59,15 @@ defmodule HumiexTest.TestHTTPClient do
   end
 
   @impl true
+  def start(%State{resp: nil, client: %Client{opts: opts}} = state) do
+    resp = Keyword.get(opts, :resp)
+
+    fn ->
+      get_next(resp)
+      %State{state | resp: resp}
+    end
+  end
+
   def start(%State{resp: resp} = state) do
     fn ->
       get_next(resp)
