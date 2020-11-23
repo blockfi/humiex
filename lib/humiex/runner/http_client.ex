@@ -48,6 +48,11 @@ defmodule Humiex.Runner.HTTPClient do
   end
 
   @impl true
+  def stop({:error, resp_id: id, code: _code}) do
+    :hackney.stop_async(id)
+  end
+
+  @impl true
   def next(
         %State{
           resp: %HTTPoison.AsyncResponse{id: id} = resp,
@@ -57,10 +62,15 @@ defmodule Humiex.Runner.HTTPClient do
     recv_timeout = Keyword.get(opts, :recv_timeout, @default_recv_timeout)
 
     receive do
+      %HTTPoison.AsyncStatus{id: ^id, code: code} when code < 299 ->
+        Logger.debug("STATUS: #{code}")
+        HTTPoison.stream_next(resp)
+        {[], %State{state | status: :ok, response_code: code}}
+
       %HTTPoison.AsyncStatus{id: ^id, code: code} ->
         Logger.debug("STATUS: #{code}")
         HTTPoison.stream_next(resp)
-        {[], state}
+        {[], %State{state | status: :error, response_code: code}}
 
       %HTTPoison.AsyncHeaders{id: ^id, headers: headers} ->
         Logger.debug("RESPONSE HEADERS: #{inspect(headers)}")

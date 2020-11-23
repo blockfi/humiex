@@ -10,9 +10,9 @@ defmodule HumiexTest.TestResponse do
   defstruct status: 200, headers: [], chunks: [], response_end: :response_end
 
   @type t :: %__MODULE__{
-    status: status,
-    headers: [header],
-    chunks: [chunk],
-    response_end: :response_end
-  }
+          status: status,
+          headers: [header],
+          chunks: [chunk],
+          response_end: :response_end
+        }
 end

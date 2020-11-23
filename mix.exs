@@ -13,7 +13,10 @@ defmodule Humiex.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
-      package: package()
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: preferred_cli_env(),
+      package: package(),
+      aliases: aliases()
     ]
   end
 
@@ -58,10 +61,35 @@ defmodule Humiex.MixProject do
       {:httpoison, "1.2.0"},
       {:hackney, "1.16.0"},
       {:jason, "1.2.2"},
-      {:ex_doc, "~> 0.22", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.12", only: :test},
+      {:mix_audit, "~> 0.1", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp preferred_cli_env do
+    [
+      "check.all": :test,
+      coveralls: :test,
+      "coveralls.detail": :test,
+      "coveralls.html": :test,
+      "coveralls.json": :test,
+      "coveralls.post": :test,
+      "coveralls.xml": :test
+    ]
+  end
+
+  defp aliases do
+    [
+      "check.all": [
+        "format --check-formatted --dry-run",
+        "credo",
+        "coveralls.html",
+        "deps.audit"
+      ]
+    ]
+  end
 end

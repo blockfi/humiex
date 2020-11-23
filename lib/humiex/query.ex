@@ -5,7 +5,7 @@ defmodule Humiex.Query do
   alias Humiex.{Client, Runner, State}
 
   @spec query(Humiex.Client.t(), String.t(), State.maybe_time(), State.maybe_time(), keyword) ::
-          {:ok, [any], Humiex.State.t()}
+          {:ok, [any], Humiex.State.t()} | {:error, any, Humiex.State.t()}
   def query(%Client{} = client, query_string, start_time, end_time \\ nil, opts \\ []) do
     opts =
       opts
@@ -45,8 +45,12 @@ defmodule Humiex.Query do
       opts: opts
     }
     |> Runner.start()
-    |> Enum.map(fn %{value: event} ->
-      event
+    |> Enum.map(fn
+      {:error, _info, _state} = error ->
+        error
+
+      %{value: event} ->
+        event
     end)
   end
 end
