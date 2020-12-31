@@ -4,7 +4,7 @@ defmodule Humiex.Client do
 
   Stores the url, repo and token needed to use the Search API
   """
-  alias Humiex.Runner.HTTPClient
+  alias Humiex.Client.HTTPClient
 
   defstruct [:url, :repo, :token, :headers, :http_client, :opts]
 

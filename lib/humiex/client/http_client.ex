@@ -1,6 +1,6 @@
-defmodule Humiex.Runner.HTTPClient do
+defmodule Humiex.Client.HTTPClient do
   @moduledoc false
-  @behaviour Humiex.HTTPAsyncBehaviour
+  @behaviour Humiex.Support.HTTPAsyncClient
 
   require Logger
   alias Humiex.{Client, State}

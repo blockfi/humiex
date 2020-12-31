@@ -95,7 +95,7 @@ defmodule Humiex do
       iex> absolute_start_stream = Humiex.stream(client, query_string, absolute_start)
       iex> absolute_start_stream |> Enum.take(3)
   """
-  @spec stream(Humiex.Client.t(), String.t(), relative_time(), keyword) :: Enumerable.t()
+  @spec stream(Humiex.Client.t(), String.t(), maybe_time(), keyword) :: Enumerable.t()
   defdelegate stream(client, query_string, start_time \\ nil, opts \\ []), to: Humiex.Stream
 
   @doc """

@@ -4,7 +4,7 @@ defmodule HumiexTest.TestHTTPClient do
 
   * setup/1 allows to specify the response sent.
   """
-  @behaviour Humiex.HTTPAsyncBehaviour
+  @behaviour Humiex.Support.HTTPAsyncClient
   require Logger
   alias Humiex.{Client, State}
   alias HumiexTest.TestResponse
