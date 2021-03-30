@@ -27,10 +27,17 @@ defmodule Humiex.Client.HTTPClient do
   end
 
   @impl true
-  def start(%State{client: %Client{url: url, headers: headers}} = state) do
+  def start(%State{client: %Client{url: url, headers: headers}, opts: opts} = state) do
     fn ->
       body = to_body(state)
-      resp = HTTPoison.post!(url, body, headers, stream_to: self(), async: :once)
+      recv_timeout = Keyword.get(opts, :recv_timeout, @default_recv_timeout)
+
+      resp =
+        HTTPoison.post!(url, body, headers,
+          stream_to: self(),
+          async: :once,
+          recv_timeout: recv_timeout
+        )
 
       %State{
         state
